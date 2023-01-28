@@ -13,11 +13,11 @@ float distance_to(vec2 v1, vec2 v2) {
 }
 
 void main() {
-    float dist = distance_to(seeds[0], gl_FragCoord.xy);
+    float dist = distance(seeds[0], gl_FragCoord.xy);
     vec3 color = colors[0];
 
     for (int i = 1; i < size; i++) {
-        float current = distance_to(seeds[i], gl_FragCoord.xy);
+        float current = distance(seeds[i], gl_FragCoord.xy);
         if (current < dist) {
             color = colors[i], dist = current;
         }
