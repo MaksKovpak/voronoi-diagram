@@ -20,6 +20,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="voronoiColors.frag">
+      <Filter>Source Files</Filter>
+    </None>
     <None Include="voronoi.frag">
       <Filter>Source Files</Filter>
     </None>

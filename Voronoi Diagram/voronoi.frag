@@ -5,23 +5,33 @@ precision mediump float;
 
 uniform int size;
 uniform vec2 seeds[MAX_SIZE];
-uniform vec3 colors[MAX_SIZE];
 
-// Manhattan distance
-float distance_to(vec2 v1, vec2 v2) {
-	return abs(v1.x - v2.x) + abs(v1.y - v2.y);
+float voronoi(in vec2 p) {
+    vec2 currentVector;
+    float minDist = 1e6;
+
+    for (int i = 0; i < size; i++) {
+        vec2 v = seeds[i] - p;
+        float d = dot(v, v);
+
+        if(d < minDist) minDist = d, currentVector = v;        
+    }
+
+    minDist = 1e6;
+    for (int i = 0; i < size; i++) {
+        vec2 v = seeds[i] - p;
+
+        // Distance between points A and B is more than 10px
+        if(dot(currentVector - v, currentVector - v) > 10) {
+            minDist = min(minDist, dot(0.5 * (currentVector + v), normalize(v - currentVector)));
+        }
+    }
+
+    return minDist;
 }
 
 void main() {
-    float dist = distance(seeds[0], gl_FragCoord.xy);
-    vec3 color = colors[0];
-
-    for (int i = 1; i < size; i++) {
-        float current = distance(seeds[i], gl_FragCoord.xy);
-        if (current < dist) {
-            color = colors[i], dist = current;
-        }
-    }
+    vec3 color = mix(vec3(0.0), vec3(1.0), smoothstep(1, 3, voronoi(gl_FragCoord.xy)));
 
     gl_FragColor = vec4(color, 1.0);
 }

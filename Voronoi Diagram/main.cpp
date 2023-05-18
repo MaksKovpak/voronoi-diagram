@@ -4,11 +4,9 @@
 #include <algorithm>
 #include <random>
 
-using namespace sf;
+// #define COLORS
 
-const int Width = 1600, Height = 800;
-const int MaxPointsNumber = 512;
-int PointsNumber = 40;
+using namespace sf;
 
 int main(int argc, char const* argv[]) {
 	if (!Shader::isAvailable()) {
@@ -16,20 +14,28 @@ int main(int argc, char const* argv[]) {
 		return EXIT_FAILURE;
 	}
 
+	const int WIDTH = 1200, HEIGHT = 800;
+	const int MAX_POINTS_NUMBER = 512;
+	int pointsNumber = 20;
+
 	std::random_device dev;
 	std::default_random_engine gen(dev());
-	std::uniform_real_distribution<> frand(70.0 / 255, 1.0); // Pastel colors (also may be 90.0 / 255)
-	std::uniform_real_distribution<> wRand(30.0, Width - 30.0), hRand(30.0, Height - 30.0); // With a margin of 30 pixels from the edges of the window
+
+	// With a margin of 30 pixels from the edges of the window
+	std::uniform_real_distribution<> wRand(30.0, WIDTH - 30.0), hRand(30.0, HEIGHT - 30.0); 
 
 	ContextSettings settings;
 	settings.antialiasingLevel = 8;
-	RenderWindow window(VideoMode(Width, Height), "Voronoi Diagram", Style::Close | Style::Titlebar, settings);
+	RenderWindow window(VideoMode(WIDTH, HEIGHT), "Voronoi Diagram", Style::Close | Style::Titlebar, settings);
 	
-	std::vector<Vector2f> coordinates(PointsNumber);
+	std::vector<Vector2f> coordinates(pointsNumber);
 	std::generate(coordinates.begin(), coordinates.end(), [&]() { return Vector2f(wRand(gen), hRand(gen)); });
 
-	std::vector<Vector3f> colors(PointsNumber); // Colors of cells
-	std::generate(colors.begin(), colors.end(), [&]() { return Vector3f(frand(gen), frand(gen), frand(gen)); });
+	#ifdef COLORS
+		std::uniform_real_distribution<> frand(70.0 / 255, 1.0); // Pastel colors (also may be 90.0 / 255)
+		std::vector<Vector3f> colors(pointsNumber); // Colors of cells
+		std::generate(colors.begin(), colors.end(), [&]() { return Vector3f(frand(gen), frand(gen), frand(gen)); });
+	#endif
 
 	// To draw appropriate points
 	std::vector<std::pair<CircleShape, bool>> circles; // The second parameter tells us whether the point is movable
@@ -44,8 +50,16 @@ int main(int argc, char const* argv[]) {
 		circles.push_back({ tempPoint, false });
 	}
 
-	Shader shader; // GLSL fragment shader
-	if (!shader.loadFromFile("voronoi.frag", Shader::Fragment))
+	std::string shaderName;
+
+	#ifdef COLORS
+		shaderName = "voronoiColors.frag";
+	#else 
+		shaderName = "voronoi.frag";
+	#endif
+
+	Shader shader;
+	if (!shader.loadFromFile(shaderName, Shader::Fragment))
 		return EXIT_FAILURE;
 
 	while (window.isOpen()) {
@@ -74,13 +88,17 @@ int main(int argc, char const* argv[]) {
 					coordinates.push_back(Vector2f(Mouse::getPosition(window)));
 					tempPoint.setPosition(coordinates.back());
 					circles.push_back({ tempPoint, false });
-					colors.push_back(Vector3f(frand(gen), frand(gen), frand(gen)));
-					PointsNumber++;
+
+					#ifdef COLORS
+						colors.push_back(Vector3f(frand(gen), frand(gen), frand(gen)));
+					#endif
+
+					pointsNumber++;
 				}
 			}
 		} 
 
-		for (size_t i = 0; i < PointsNumber; i++) {
+		for (size_t i = 0; i < pointsNumber; i++) {
 			auto mousePos = Mouse::getPosition(window);
 			if (std::hypot(mousePos.x - coordinates[i].x, mousePos.y - coordinates[i].y) <= 10.0) {
 				radius = 6.0;
@@ -105,12 +123,15 @@ int main(int argc, char const* argv[]) {
 		std::vector<Vector2f> copy(coordinates.size());
 		std::transform(coordinates.begin(), coordinates.end(), copy.begin(), toCoord);
 
-		shader.setUniform("size", PointsNumber);
-		shader.setUniformArray("seeds", copy.data(), MaxPointsNumber);
-		shader.setUniformArray("colors", colors.data(), MaxPointsNumber);
+		shader.setUniform("size", pointsNumber);
+		shader.setUniformArray("seeds", copy.data(), MAX_POINTS_NUMBER);
+
+		#ifdef COLORS
+			shader.setUniformArray("colors", colors.data(), MAX_POINTS_NUMBER);
+		#endif
 
 		window.clear(Color::White);
-		window.draw(RectangleShape(Vector2f(Width, Height)), &shader);
+		window.draw(RectangleShape(Vector2f(WIDTH, HEIGHT)), &shader);
 
 		for (auto& c : circles) {
 			window.draw(c.first);
