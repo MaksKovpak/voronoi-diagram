@@ -5,17 +5,15 @@ If you want to use Manhattan distance, in the `voronoiColors.frag` file add the 
 
 To enable color mode, you need to add the line `#define COLORS` in the main file.
 
-![](/Images/Voronoi_Diagram_1.png)
-![](/Images/Voronoi_Diagram_2.png)
-
+![](/images/voronoi-diagram-1.png)
+![](/images/voronoi-diagram-2.png)
 
 ## Using Manhattan distance
-![](/Images/Voronoi_Diagram_Manhattan_1.png)
-![](/Images/Voronoi_Diagram_Manhattan_2.png)
-
+![](/images/voronoi-diagram-manhattan-1.png)
+![](/images/voronoi-diagram-manhattan-2.png)
 
 ## Without colors (only edges)
 
-![](/Images/Voronoi_Diagram_Edges_1.png)
-![](/Images/Voronoi_Diagram_Edges_2.png)
+![](/images/voronoi-diagram-edges-1.png)
+![](/images/voronoi-diagram-edges-2.png)
 
